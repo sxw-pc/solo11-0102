@@ -1,0 +1,12 @@
+{
+  "deadline": "2026-01-02T00:00:00Z",
+  "recipients": [
+    {
+      "id": "R1",
+      "channel": "email-v1",
+      "aliases": [
+        "r1-alias@example.invalid"
+      ]
+    }
+  ]
+}
