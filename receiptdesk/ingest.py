@@ -10,8 +10,18 @@ def timestamp(text):
     return dt
 def freeze_config(db_path,config):
     raw=Path(config).read_bytes();digest=hash_bytes(raw); db=connect(db_path)
+    old=db.execute("SELECT value FROM meta WHERE key='config_hash'").fetchone()
+    if old and old['value']!=digest:
+        db.close()
+        raise ValueError('frozen_config_conflict')
     parsed=json.loads(raw)
     subjects=parsed.get('boxes',parsed.get('stations',parsed.get('recipients',[])))
+    ids=[item.get('box',item.get('id')) for item in subjects]
+    if not ids or any(not item for item in ids) or len(ids)!=len(set(ids)):
+        raise ValueError('duplicate_or_missing_subject')
+    aliases=[alias for item in subjects for alias in item.get('aliases',[])]
+    if len(aliases)!=len(set(aliases)) or set(aliases)&set(ids):
+        raise ValueError('ambiguous_alias')
     with db:
         old=db.execute("SELECT value FROM meta WHERE key='config_hash'").fetchone()
         if old and old['value']!=digest: raise ValueError('frozen_config_conflict')
@@ -27,7 +37,7 @@ def import_file(db_path,path):
         db.close();return {'imported':0,'duplicate_file':True}
     count=0
     with db:
-        sid=db.execute('INSERT INTO source(path,sha256) VALUES (?,?)',(str(path),digest)).lastrowid
+        sid=db.execute('INSERT INTO source(path,sha256,raw) VALUES (?,?,?)',(str(path),digest,raw)).lastrowid
         for line_no,line in enumerate(raw.decode('utf-8-sig').splitlines(),1):
             if not line.strip(): continue
             try:
@@ -44,5 +54,5 @@ def import_file(db_path,path):
                     continue
                 db.execute('INSERT INTO event(source_id,line_no,identity,subject,kind,time,payload,sha256) VALUES (?,?,?,?,?,?,?,?)',(sid,line_no,identity,subject,kind,normalized,canonical,h));count+=1
             except (ValueError,TypeError,KeyError,json.JSONDecodeError) as exc:
-                db.execute('INSERT INTO issue(code,detail) VALUES (?,?)',('parse_error',f'{sid}:{line_no}:{exc}'))
+                db.execute('INSERT INTO issue(code,detail) VALUES (?,?)',('parse_error',json.dumps({'source_id':sid,'line_no':line_no,'error':str(exc),'raw_line':line},ensure_ascii=False)))
     db.close();return {'imported':count,'duplicate_file':False}

@@ -34,3 +34,15 @@ def test_configuration_is_frozen(tmp_path):
     bad=tmp_path/'other.json';bad.write_text('{}')
     import pytest
     with pytest.raises(ValueError,match='frozen_config_conflict'):freeze_config(db,bad)
+
+def test_original_bytes_and_bad_line_are_preserved(tmp_path):
+    base=Path(__file__).parent.parent/'fixtures';db=tmp_path/'x.db'
+    freeze_config(db,base/'config.json')
+    p=tmp_path/'broken.jsonl'
+    raw=b'{broken-json\n'
+    p.write_bytes(raw)
+    import_file(db,p)
+    con=connect(db)
+    assert con.execute('SELECT raw FROM source').fetchone()[0]==raw
+    detail=json.loads(con.execute("SELECT detail FROM issue WHERE code='parse_error'").fetchone()[0])
+    assert detail['raw_line']=='{broken-json'

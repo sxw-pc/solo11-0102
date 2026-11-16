@@ -105,3 +105,28 @@ def test_unknown_recipient_is_isolated(tmp_path):
     result,issues,_=run_case(tmp_path,events)
     assert result['R1']=='effective'
     assert 'unknown_recipient' in issues
+
+
+def test_ambiguous_alias_contract_is_rejected(tmp_path):
+    import pytest
+    cfg=json.loads((BASE/'config.json').read_text())
+    cfg['recipients'].append({'id':'R2','channel':'email-v1','aliases':['r1-alias@example.invalid']})
+    p=tmp_path/'bad.json';p.write_text(json.dumps(cfg))
+    with pytest.raises(ValueError,match='ambiguous_alias'):
+        freeze_config(tmp_path/'bad.db',p)
+
+
+def test_deadline_exactly_is_timely(tmp_path):
+    events=fixture();events[-1]['time']='2026-01-02T00:00:00Z'
+    result,issues,_=run_case(tmp_path,events)
+    assert result['R1']=='effective'
+    assert 'late_delivery' not in issues
+
+
+def test_report_contains_frozen_roster_and_evidence(tmp_path):
+    from receiptdesk.report import export
+    run_case(tmp_path,fixture())
+    data=json.loads(export(tmp_path/'case.db',tmp_path/'report.json').read_text())
+    assert data['batch'] and data['subject'] and data['source'] and data['event']
+    assert data['decision'] and data['evidence'] and data['run']
+    assert len(data['evidence'])==len(fixture())

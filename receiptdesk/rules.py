@@ -3,15 +3,16 @@ from datetime import datetime,timezone
 from collections import defaultdict
 from .store import connect
 from .ingest import timestamp
+from .identity import alias_map,resolve
+from .timeline import advance
 
 VERSION='1'
-STATES={'queued':{'sent','revoke'},'sent':{'deferred','bounced','receipt','revoke'},'deferred':{'sent','bounced','revoke'},'bounced':set(),'receipt':set(),'revoke':set()}
 def evaluate(db_path):
     db=connect(db_path);cfg=json.loads(db.execute("SELECT value FROM meta WHERE key='config_json'").fetchone()['value'])
-    roster={r['id']:r for r in cfg['recipients']};aliases={a:r['id'] for r in cfg['recipients'] for a in r.get('aliases',[])}
+    roster={r['id']:r for r in cfg['recipients']};aliases=alias_map(cfg['recipients'])
     by=defaultdict(list)
     for row in db.execute('SELECT * FROM event ORDER BY time,id'):
-        e=dict(row);v=json.loads(e['payload']);addr=v.get('address',e['subject']);subject=aliases.get(addr,e['subject']);by[subject].append(e)
+        e=dict(row);v=json.loads(e['payload']);addr=v.get('address',e['subject']);subject=resolve(e['subject'],addr,aliases);by[subject].append(e)
     results={}
     with db:
         run_id=db.execute('INSERT INTO run(started_at,status) VALUES (?,?)',(datetime.now(timezone.utc).isoformat(),'running')).lastrowid
@@ -23,10 +24,9 @@ def evaluate(db_path):
                 v=json.loads(e['payload']);mid=v.get('message_id');kind=e['kind']
                 if v.get('channel')!=spec['channel']:problems.append('channel_mismatch')
                 if not mid:problems.append('missing_message_id');continue
-                current=messages.get(mid)
-                if current is None and kind!='queued':problems.append('missing_queue')
-                elif current is not None and kind not in STATES.get(current,set()):problems.append('illegal_transition')
-                else:messages[mid]=kind
+                next_state,error=advance(messages.get(mid),kind)
+                if error:problems.append(error)
+                else:messages[mid]=next_state
                 if kind=='receipt':
                     delivered=True
                     if timestamp(e['time'])>timestamp(cfg['deadline']):late=True
@@ -36,8 +36,8 @@ def evaluate(db_path):
             if db.execute("SELECT 1 FROM issue WHERE code='identity_conflict'").fetchone():problems.append('identity_conflict')
             status='effective' if delivered and not late and not any(p in problems for p in ('illegal_transition','channel_mismatch','missing_queue','unknown_original')) else ('undelivered' if late or 'hard_bounce_history' in problems else 'insufficient')
             detail=json.dumps({'issues':sorted(set(problems)),'messages':messages,'evidence':[e['id'] for e in events]},ensure_ascii=False)
-            db.execute('INSERT INTO decision VALUES (?,?,?,?)',(recipient,status,detail,VERSION))
-            for e in events:db.execute('INSERT INTO evidence VALUES (?,?,?)',(recipient,e['id'],VERSION))
+            db.execute('INSERT INTO decision VALUES (?,?,?,?,?)',(recipient,status,detail,VERSION,run_id))
+            for e in events:db.execute('INSERT INTO evidence VALUES (?,?,?,?)',(recipient,e['id'],VERSION,run_id))
             for code in sorted(set(problems)):db.execute('INSERT INTO issue(code,detail) VALUES (?,?)',(code,recipient))
             results[recipient]=status
         for subject in by:db.execute('INSERT INTO issue(code,detail) VALUES (?,?)',('unknown_recipient',subject))

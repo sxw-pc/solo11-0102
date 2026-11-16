@@ -4,7 +4,8 @@ from .store import connect
 
 def export(db_path,out):
     db=connect(db_path)
-    data={table:[dict(r) for r in db.execute(f'SELECT * FROM {table} ORDER BY 1')] for table in ('batch','subject','source','event','issue','decision','evidence','run')}
+    data={table:[dict(r) for r in db.execute(f'SELECT * FROM {table} ORDER BY 1')] for table in ('batch','subject','event','issue','decision','evidence','run')}
+    data['source']=[dict(r) for r in db.execute('SELECT id,path,sha256 FROM source ORDER BY id')]
     data['config_hash']=db.execute("SELECT value FROM meta WHERE key='config_hash'").fetchone()['value']
     target=Path(out);target.parent.mkdir(parents=True,exist_ok=True)
     target.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8')
