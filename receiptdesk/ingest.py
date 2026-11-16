@@ -3,6 +3,9 @@ from datetime import datetime,timezone
 from pathlib import Path
 from .store import connect
 
+CONTRACTS=('event_time','relay_seq')
+INT_FIELDS=('attempt','seq','rseq')
+
 def hash_bytes(data): return hashlib.sha256(data).hexdigest()
 def timestamp(text):
     dt=datetime.fromisoformat(text.replace('Z','+00:00'))
@@ -15,6 +18,10 @@ def freeze_config(db_path,config):
         db.close()
         raise ValueError('frozen_config_conflict')
     parsed=json.loads(raw)
+    contract=parsed.get('adjudication','event_time')
+    if contract not in CONTRACTS:
+        db.close()
+        raise ValueError('unknown_adjudication_contract')
     subjects=parsed.get('boxes',parsed.get('stations',parsed.get('recipients',[])))
     ids=[item.get('box',item.get('id')) for item in subjects]
     if not ids or any(not item for item in ids) or len(ids)!=len(set(ids)):
@@ -42,6 +49,8 @@ def import_file(db_path,path):
             if not line.strip(): continue
             try:
                 row=json.loads(line)
+                for field in INT_FIELDS:
+                    if row.get(field) is not None: row[field]=int(row[field])
                 kind=str(row['kind']); subject=str(row['subject']);ts=str(row['time'])
                 normalized=timestamp(ts).astimezone(timezone.utc).isoformat()
                 identity=str(row.get('identity') or f"{row['device']}:{int(row['seq'])}")
