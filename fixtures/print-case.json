@@ -1,0 +1,1 @@
+{"jobs":[{"id":"J1","subject":"R1","message_id":"P1"},{"id":"J2","subject":"R2","message_id":"P2"}],"stock":["L100","L101","L102","L103"],"faults":{"L100":"commit_then_ack_lost","L101":"jam"},"postage_cents_per_live_label":80,"contracts":["retain_verified_serial","void_and_reissue"]}
