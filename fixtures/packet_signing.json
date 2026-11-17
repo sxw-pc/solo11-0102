@@ -1,0 +1,60 @@
+{
+  "batch_id": "batch-1",
+  "forms": [
+    {
+      "id": "A",
+      "version": "FORM-A-v1.txt",
+      "sha256": "f4571575f755cab65b35fd99a70fc863747f69350c7cc98f2d9fd6051c13dbc7"
+    },
+    {
+      "id": "B",
+      "version": "FORM-B-v2.txt",
+      "sha256": "ce14c628ef11febc23c7ffbb81107ce8e83602b676ab62dd802ec690c3a8e06a"
+    }
+  ],
+  "signers": [
+    {
+      "id": "S-A",
+      "remaining_seals": 1,
+      "authorized_forms": [
+        "A"
+      ]
+    },
+    {
+      "id": "S-AB",
+      "remaining_seals": 1,
+      "authorized_forms": [
+        "A",
+        "B"
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "recipient": "R1",
+      "requested_at": "2026-01-01T08:00:00Z",
+      "required_forms": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "recipient": "R2",
+      "requested_at": "2026-01-01T09:00:00Z",
+      "required_forms": [
+        "A"
+      ]
+    },
+    {
+      "recipient": "R3",
+      "requested_at": "2026-01-01T09:30:00Z",
+      "required_forms": [
+        "A"
+      ]
+    }
+  ],
+  "contracts": [
+    "oldest_complete_request",
+    "max_completed_recipients"
+  ]
+}
