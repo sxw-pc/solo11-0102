@@ -1,0 +1,13 @@
+{
+  "batch_id": "batch-1",
+  "source_file": "mixed_recipient_source.jsonl",
+  "source_sha256": "a6a362ddbf3093db9f180d288c6f470343a3c141decfec7864ebe6353db08fff",
+  "hold_recipient": "R1",
+  "hold_file": "retention_docs/HOLD-R1.txt",
+  "hold_sha256": "97c5c3ea407cc1b6ab123b6bfaa7f86612c665a0b4129ee3d1765edf4721fb9a",
+  "erase_recipient": "R2",
+  "contracts": [
+    "shared_source_hold",
+    "subject_erasure_with_rebase"
+  ]
+}
