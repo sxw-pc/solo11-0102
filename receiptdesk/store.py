@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS issue(id INTEGER PRIMARY KEY,code TEXT NOT NULL,detai
 CREATE TABLE IF NOT EXISTS decision(subject TEXT PRIMARY KEY,status TEXT NOT NULL,details TEXT NOT NULL,rule_version TEXT NOT NULL,run_id INTEGER NOT NULL REFERENCES run(id));
 CREATE TABLE IF NOT EXISTS evidence(subject TEXT NOT NULL REFERENCES subject(id),event_id INTEGER NOT NULL REFERENCES event(id),rule_version TEXT NOT NULL,run_id INTEGER NOT NULL REFERENCES run(id),PRIMARY KEY(subject,event_id,rule_version));
 CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY,started_at TEXT NOT NULL,completed_at TEXT,status TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_pack(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),ink_grade TEXT NOT NULL,mass_kg REAL NOT NULL,fiber_kg REAL NOT NULL,residue_kg REAL NOT NULL,container TEXT,location TEXT NOT NULL,disposition TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_container(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),capacity_kg REAL NOT NULL,location TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_operation(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),kind TEXT NOT NULL,result TEXT NOT NULL);
 """
 def connect(path):
     p=Path(path);p.parent.mkdir(parents=True,exist_ok=True)

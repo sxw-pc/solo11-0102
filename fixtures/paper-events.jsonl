@@ -1,0 +1,2 @@
+{"kind":"queued","subject":"R1","identity":"PW1:1","time":"2026-01-01T08:00:00Z","message_id":"PW1","channel":"postal-v1"}
+{"kind":"queued","subject":"R2","identity":"PW2:1","time":"2026-01-01T08:01:00Z","message_id":"PW2","channel":"postal-v1"}
