@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS issue(id INTEGER PRIMARY KEY,code TEXT NOT NULL,detai
 CREATE TABLE IF NOT EXISTS decision(subject TEXT PRIMARY KEY,status TEXT NOT NULL,details TEXT NOT NULL,rule_version TEXT NOT NULL,run_id INTEGER NOT NULL REFERENCES run(id));
 CREATE TABLE IF NOT EXISTS evidence(subject TEXT NOT NULL REFERENCES subject(id),event_id INTEGER NOT NULL REFERENCES event(id),rule_version TEXT NOT NULL,run_id INTEGER NOT NULL REFERENCES run(id),PRIMARY KEY(subject,event_id,rule_version));
 CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY,started_at TEXT NOT NULL,completed_at TEXT,status TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS field_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS field_courier(case_id TEXT PRIMARY KEY REFERENCES field_case(id),node TEXT NOT NULL,minute INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS field_move(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES field_case(id),origin TEXT NOT NULL,destination TEXT NOT NULL,minutes INTEGER NOT NULL,arrival INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS field_inspection(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES field_case(id),recipient TEXT NOT NULL,minute INTEGER NOT NULL,observation TEXT NOT NULL,UNIQUE(case_id,recipient));
 """
 def connect(path):
     p=Path(path);p.parent.mkdir(parents=True,exist_ok=True)

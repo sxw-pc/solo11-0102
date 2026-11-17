@@ -1,0 +1,55 @@
+{
+  "depot": "D",
+  "finish": "E",
+  "shift_end_minute": 30,
+  "recipients": [
+    {
+      "id": "R1",
+      "node": "A",
+      "decision_status": "undelivered",
+      "event_source_sha256": "df0bd3218116f3e98646e8aa22646f2410954f4114a92361f00f50e1eedb31f2",
+      "requested_minute": 30,
+      "observation": "locked_mailbox"
+    },
+    {
+      "id": "R2",
+      "node": "B",
+      "decision_status": "insufficient",
+      "event_source_sha256": "df0bd3218116f3e98646e8aa22646f2410954f4114a92361f00f50e1eedb31f2",
+      "requested_minute": 5,
+      "observation": "address_confirmed"
+    }
+  ],
+  "edges": [
+    {
+      "from": "D",
+      "to": "A",
+      "minutes": 1
+    },
+    {
+      "from": "D",
+      "to": "B",
+      "minutes": 7
+    },
+    {
+      "from": "A",
+      "to": "B",
+      "minutes": 8
+    },
+    {
+      "from": "B",
+      "to": "A",
+      "minutes": 10
+    },
+    {
+      "from": "A",
+      "to": "E",
+      "minutes": 1
+    },
+    {
+      "from": "B",
+      "to": "E",
+      "minutes": 7
+    }
+  ]
+}

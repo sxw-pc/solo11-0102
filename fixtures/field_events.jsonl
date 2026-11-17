@@ -1,0 +1,5 @@
+{"kind": "queued", "subject": "R1", "identity": "R1-M:1", "time": "2026-01-01T08:05:00Z", "message_id": "R1-M", "attempt": 1, "address": "r1@example.invalid", "channel": "email-v1"}
+{"kind": "sent", "subject": "R1", "identity": "R1-M:2", "time": "2026-01-01T08:10:00Z", "message_id": "R1-M", "attempt": 2, "address": "r1@example.invalid", "channel": "email-v1"}
+{"kind": "bounced", "subject": "R1", "identity": "R1-M:3", "time": "2026-01-01T08:15:00Z", "message_id": "R1-M", "attempt": 3, "address": "r1@example.invalid", "channel": "email-v1"}
+{"kind": "queued", "subject": "R2", "identity": "R2-M:1", "time": "2026-01-01T08:05:00Z", "message_id": "R2-M", "attempt": 1, "address": "r2@example.invalid", "channel": "email-v1"}
+{"kind": "sent", "subject": "R2", "identity": "R2-M:2", "time": "2026-01-01T08:10:00Z", "message_id": "R2-M", "attempt": 2, "address": "r2@example.invalid", "channel": "email-v1"}
