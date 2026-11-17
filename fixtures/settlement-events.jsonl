@@ -1,0 +1,2 @@
+{"kind":"queued","subject":"R1","identity":"SET1:1","time":"2026-01-01T08:00:00Z","message_id":"SET1","channel":"email-v1"}
+{"kind":"queued","subject":"R2","identity":"SET2:1","time":"2026-01-01T08:01:00Z","message_id":"SET2","channel":"email-v1"}

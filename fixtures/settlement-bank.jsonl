@@ -1,0 +1,2 @@
+{"bank_id":"C1","amount_cents":8000,"payer":"P-POOL","at":"2026-01-01T09:00:00Z","candidate_invoices":["INV-1","INV-2"]}
+{"bank_id":"C2","amount_cents":8000,"payer":"P-R1","at":"2026-01-01T09:01:00Z","candidate_invoices":["INV-1"]}

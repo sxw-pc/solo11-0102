@@ -1,0 +1,1 @@
+{"invoices":[{"id":"INV-1","subject":"R1","message_id":"SET1","amount_cents":8000},{"id":"INV-2","subject":"R2","message_id":"SET2","amount_cents":8000}],"bank_ids":["C1","C2"],"beneficiaries":{"merchant":"NOTICE-MERCHANT","carrier":"MAIL-CARRIER"},"commission_cents":1600,"contracts":["merchant_gross","carrier_commission"]}
