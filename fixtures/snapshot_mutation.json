@@ -1,0 +1,12 @@
+{
+  "logical_path": "incoming/receipt_batch.jsonl",
+  "original_file": "arrival_original.jsonl",
+  "original_sha256": "c33b49da4b607fb5840d1deb702c01a2439cf8e77ba04381cd0d0c2ae38ebc06",
+  "revised_file": "arrival_revised.jsonl",
+  "revised_sha256": "492f86a994ca0dd6a987cf55408641b7b641443210efa645eee0ddf05a53a2f3",
+  "mutation_after_line": 1024,
+  "contracts": [
+    "freeze_on_open",
+    "verify_then_retry_latest"
+  ]
+}
