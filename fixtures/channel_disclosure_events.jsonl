@@ -1,0 +1,4 @@
+{"kind": "queued", "subject": "R1", "identity": "CM1:1", "time": "2026-01-01T08:05:00Z", "message_id": "CM1", "attempt": 1, "address": "r1@example.invalid", "channel": "email-v2"}
+{"kind": "queued", "subject": "R2", "identity": "CM2:1", "time": "2026-01-01T08:10:00Z", "message_id": "CM2", "attempt": 1, "address": "r2@example.invalid", "channel": "email-v1"}
+{"kind": "queued", "subject": "R3", "identity": "CM3:1", "time": "2026-01-01T08:15:00Z", "message_id": "CM3", "attempt": 1, "address": "r3@example.invalid", "channel": "email-v2"}
+{"kind": "queued", "subject": "R4", "identity": "CM4:1", "time": "2026-01-01T08:20:00Z", "message_id": "CM4", "attempt": 1, "address": "r4@example.invalid", "channel": "email-v1"}

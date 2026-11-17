@@ -1,0 +1,33 @@
+{
+  "audience": "external-partner",
+  "metric": "email-v2_recipient_count",
+  "universe": [
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "previous_release": {
+    "id": "REL-01",
+    "recipients": [
+      "R1",
+      "R2"
+    ],
+    "count": 1
+  },
+  "new_request": {
+    "id": "REQ-02",
+    "recipients": [
+      "R1",
+      "R2",
+      "R3"
+    ]
+  },
+  "allowed_expansion": [
+    "R4"
+  ],
+  "policies": [
+    "deny_unsafe",
+    "minimum_safe_coarsening"
+  ]
+}

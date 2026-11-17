@@ -1,0 +1,33 @@
+{
+  "deadline": "2026-01-02T00:00:00Z",
+  "recipients": [
+    {
+      "id": "R1",
+      "channel": "email-v2",
+      "aliases": [
+        "r1@example.invalid"
+      ]
+    },
+    {
+      "id": "R2",
+      "channel": "email-v1",
+      "aliases": [
+        "r2@example.invalid"
+      ]
+    },
+    {
+      "id": "R3",
+      "channel": "email-v2",
+      "aliases": [
+        "r3@example.invalid"
+      ]
+    },
+    {
+      "id": "R4",
+      "channel": "email-v1",
+      "aliases": [
+        "r4@example.invalid"
+      ]
+    }
+  ]
+}
