@@ -15,11 +15,25 @@ CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY,started_at TEXT NOT NULL,c
 CREATE TABLE IF NOT EXISTS paper_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS paper_pack(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),ink_grade TEXT NOT NULL,mass_kg REAL NOT NULL,fiber_kg REAL NOT NULL,residue_kg REAL NOT NULL,container TEXT,location TEXT NOT NULL,disposition TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS paper_container(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),capacity_kg REAL NOT NULL,location TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS paper_operation(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),kind TEXT NOT NULL,result TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_operation(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),kind TEXT NOT NULL,result TEXT NOT NULL,intent TEXT);
+CREATE TABLE IF NOT EXISTS paper_authorization(case_id TEXT NOT NULL,route TEXT NOT NULL,enabled INTEGER NOT NULL,PRIMARY KEY(case_id,route));
+CREATE TABLE IF NOT EXISTS paper_plan(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES paper_case(id),contract TEXT NOT NULL,status TEXT NOT NULL,payload TEXT NOT NULL,digest TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS paper_plan_step(plan_id TEXT NOT NULL REFERENCES paper_plan(id),seq INTEGER NOT NULL,operation_id TEXT NOT NULL,kind TEXT NOT NULL,intent TEXT NOT NULL,status TEXT NOT NULL,result TEXT,PRIMARY KEY(plan_id,seq));
+CREATE TABLE IF NOT EXISTS paper_quarantine(id INTEGER PRIMARY KEY,plan_id TEXT NOT NULL,scope TEXT NOT NULL,ref_id TEXT NOT NULL,stage TEXT NOT NULL,reason TEXT NOT NULL,detail TEXT NOT NULL,created_at TEXT NOT NULL);
 """
+
+
+def _migrate(db):
+    """Idempotent migrations for workspaces created before the campaign tables."""
+    cols = {r['name'] for r in db.execute('PRAGMA table_info(paper_operation)')}
+    if 'intent' not in cols:
+        db.execute('ALTER TABLE paper_operation ADD COLUMN intent TEXT')
+
+
 def connect(path):
     p=Path(path);p.parent.mkdir(parents=True,exist_ok=True)
     db=sqlite3.connect(p)
     db.row_factory=sqlite3.Row
     db.executescript(SCHEMA)
+    _migrate(db)
     return db

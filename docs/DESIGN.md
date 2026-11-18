@@ -7,3 +7,18 @@
 每个消息从 `queued` 开始，可走 `sent`、`deferred`、`bounced`、`receipt` 或 `revoke` 的合法转移。无排队事件或非法跳转标记问题；回执事件时间晚于截止点标记 `late_delivery`。新消息的 `resends` 必须引用已出现的旧消息，旧退信事件继续保留。收件人可能有多个批次内别名，但未知地址不得自动归并到其他人。
 
 结论为 `effective`、`undelivered`、`insufficient`；缺送达时间或状态证据不能推定有效。业务问题与结论可重算，原始投递史不可覆盖。当前只处理本地模拟投递日志，不发送真实通知。
+
+## 保密校样废纸整批处置
+
+废纸案（`paper_case`）冻结每包的 queued 来源 SHA、油墨级别、实称质量与纤维/残渣拆分，以及箱容量和处理厂路线授权。`register` 只在原始 `queued` 事件来源存在且每包质量守恒（质量 = 纤维 + 残渣）时受理；案文件摘要变化按 `paper_case_conflict` 拒绝。
+
+规划器 `campaign.plan` 对至多 12 包、6 箱求**全局精确**子集动态规划：每包恰好进一个箱，箱载重不得超额；同箱仅一种油墨才可走纤维回收（`recover`），混装箱只能整体保密热处置（`thermal`）。目标按合同做字典序比较——`maximize_recovery` 先最大化实际回收纤维、再最小化运箱数；`minimize_shipments` 先最小化运箱数、再最大化纤维。同分时按（箱序、包序）确定性打破平局，并在交接报告中列出所有可达目标值作为最优性证据。
+
+执行器 `campaign.run_campaign` 把规划落为装箱 → 出运 → 处理的有序步骤，每步真实调用 `paper_waste` 端点并持久化操作 ID、规范意图（canonical intent）与结果。要点：
+
+- 每轮迭代使用短连接单事务，端点调用期间不持有写事务；崩溃后重启先按 `paper_operation` 对账（`_reconcile`），已提交动作标记完成，绝不重复运箱或二次处理。
+- 操作 ID 是物理动作的幂等键：同 ID 同意图返回 `replayed`；同 ID 换包/换箱/换动作触发 `operation_id_conflict`，不写任何记录。
+- 每步前做实况预检（queued 来源 SHA、冻结字段、包质量、路线授权）。现场缺包、来源漂移、容量不足或端点拒绝时，隔离受影响箱及其滞留包，对仍自由的库存重规划；已安全装箱但未出运的箱保留并只补出运/处理步骤。无箱可继续时给明确无解（`infeasible`），部分履约为 `partial`。
+- 回收纤维与受控残渣只取自真实 `process` 结果；未处理、混装热处置或损耗质量永远不计入纤维。交接报告按包、箱、整批三层核对质量守恒，并单列缺包/隔离质量。
+
+SQLite 新表：`paper_authorization`（冻结路线授权）、`paper_plan`/`paper_plan_step`（计划摘要、修订版与步骤状态机）、`paper_quarantine`（隔离台账）；`paper_operation` 增加 `intent` 列，旧库由 `store.connect` 幂等迁移。
