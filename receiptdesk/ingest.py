@@ -1,9 +1,15 @@
-import hashlib,json
+import json
 from datetime import datetime,timezone
 from pathlib import Path
-from .store import connect
+from .store import connect, hash_bytes
 
-def hash_bytes(data): return hashlib.sha256(data).hexdigest()
+def event_identity(row):
+    """Identity derivation shared by ingestion and retention attestation.
+
+    Keeping a single derivation ensures an erasure request verifies exactly the
+    identity that ingestion stored, instead of guessing one from the raw line.
+    """
+    return str(row.get('identity') or f"{row['device']}:{int(row['seq'])}")
 def timestamp(text):
     dt=datetime.fromisoformat(text.replace('Z','+00:00'))
     if dt.tzinfo is None: raise ValueError('timezone_required')
@@ -35,6 +41,12 @@ def import_file(db_path,path):
     raw=Path(path).read_bytes(); digest=hash_bytes(raw);db=connect(db_path)
     if db.execute('SELECT 1 FROM source WHERE sha256=?',(digest,)).fetchone():
         db.close();return {'imported':0,'duplicate_file':True}
+    # A file whose hash was tombstoned has already been erased under an authorized
+    # request; re-importing it would resurrect erased bytes into the active blob.
+    tomb=db.execute('SELECT request_id FROM source_hash_tombstone WHERE sha256=?',(digest,)).fetchone()
+    if tomb:
+        db.close()
+        raise ValueError(f"erased_source_tombstone:{tomb['request_id']}")
     count=0
     with db:
         sid=db.execute('INSERT INTO source(path,sha256,raw) VALUES (?,?,?)',(str(path),digest,raw)).lastrowid
@@ -44,7 +56,7 @@ def import_file(db_path,path):
                 row=json.loads(line)
                 kind=str(row['kind']); subject=str(row['subject']);ts=str(row['time'])
                 normalized=timestamp(ts).astimezone(timezone.utc).isoformat()
-                identity=str(row.get('identity') or f"{row['device']}:{int(row['seq'])}")
+                identity=event_identity(row)
                 if not kind or not subject: raise ValueError('missing_kind_or_subject')
                 canonical=json.dumps(row,sort_keys=True,ensure_ascii=False,separators=(',',':'))
                 h=hash_bytes(canonical.encode())
